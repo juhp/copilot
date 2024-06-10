@@ -16,7 +16,7 @@ import Copilot.Interpret.Eval
 import Copilot.Interpret.Render
 
 -- | Output format for the results of a Copilot spec interpretation.
-data Format = Table | CSV
+data Format = Table | CSV | Diagram
 
 -- | Interpret a Copilot specification.
 interpret :: Format  -- ^ Format to be used for the output.
@@ -52,12 +52,16 @@ paintEvaluation e = do
     printObserverOutputs
   where
 
-    printTriggerOutputs = mapM_ (printTriggerOutput) trigs
+    printTriggerOutputs = mapM_ valuesToTikz trigs
 
-    printTriggerOutput (name, ls) = putStrLn $ name ++ " & "
-                                                 ++ concatMap printTriggerOutputListElem ls
-                                                 ++ "\\\\"
 
+    trigs = interpTriggers e
+    obsvs = interpObservers e
+
+valuesToTikz (name, ls) = putStrLn $ name ++ " & "
+                                     ++ concatMap printTriggerOutputListElem ls
+                                     ++ "\\\\"
+  where
     printTriggerOutputListElem Nothing  = ""
     printTriggerOutputListElem (Just x) = showValues x
 
@@ -80,9 +84,8 @@ paintEvaluation e = do
 
     printObserverOutputs = return ()
 
-    trigs = interpTriggers e
-    obsvs = interpObservers e
-
-isBoolean "true" = True
+-- | True if the given string represents a boolean value.
+isBoolean :: String -> Bool
+isBoolean "true"  = True
 isBoolean "false" = True
-isBoolean _ = False
+isBoolean _       = False
